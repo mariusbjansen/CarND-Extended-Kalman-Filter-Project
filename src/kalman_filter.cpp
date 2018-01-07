@@ -45,23 +45,24 @@ void KalmanFilter::Update(const VectorXd &z) {
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
 
+  float px = x_(0);
+  float py = x_(1);
+  float vx = x_(2);
+  float vy = x_(3);
+
   // convert state x' to polar coordinates in order to compare it to new measurement z
   VectorXd z_pred = VectorXd(3);
 
-  // rho
-  z_pred(0) = sqrt(x_(0)*x_(0)+x_(1)*x_(1));
-  // phi
-  z_pred(1) = atan2(x_(1),x_(0));
-  
-  // rho dot
+  float rho = sqrt(px*px+py*py);
+  float phi = atan2(py,px);
+  float rho_dot = 0.f;
   // check for division by 0
-  if (fabs(z_pred(0)) < 1e-5) {
-    z_pred(2) = 0;  
-  }
-  else {
-    z_pred(2) = (x_(0)*x_(2)+x_(1)*x_(3))/sqrt(z_pred(0));
+  if (fabs(z_pred(0)) > 1e-5) {
+    rho_dot = (px*vx+py*vy)/rho;
   }
   
+  z_pred << rho, phi, rho_dot;
+
   VectorXd y = z-z_pred;
 
   // following code is identical to normal Update function (only H and R have different values)

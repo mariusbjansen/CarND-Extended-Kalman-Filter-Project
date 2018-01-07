@@ -64,13 +64,13 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       float ro_dot = measurement_pack.raw_measurements_(2);
       ekf_.x_(0) = ro * cos(phi);
       ekf_.x_(1) = ro * sin(phi);      
-      ekf_.x_(2) = ro_dot * cos(phi);
-      ekf_.x_(3) = ro_dot * sin(phi);
+      /*ekf_.x_(2) = ro_dot * cos(phi);
+      ekf_.x_(3) = ro_dot * sin(phi);*/
 
       // initial state covariance matrix P - part II
       // if we have radar as the first measurement: vx and vy are already well known
-      ekf_.P_(2,2) = 1;
-      ekf_.P_(3,3) = 1;
+      ekf_.P_(2,2) = 1e3;
+      ekf_.P_(3,3) = 1e3;
     }
 
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
@@ -148,6 +148,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   }
 
   // print the output
-  cout << "x_ = " << ekf_.x_ << endl;
-  cout << "P_ = " << ekf_.P_ << endl;
+  cout << "State vector x_\n";
+  cout << "px = " << ekf_.x_(0) << endl;
+  cout << "py = " << ekf_.x_(1) << endl;
+  cout << "vx = " << ekf_.x_(2) << endl;
+  cout << "vy = " << ekf_.x_(3) << endl << endl;
+  cout << "State covariance matrix P_\n";
+  cout << ekf_.P_ << endl << endl << endl;
 }
