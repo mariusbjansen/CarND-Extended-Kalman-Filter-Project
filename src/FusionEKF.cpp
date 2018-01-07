@@ -70,8 +70,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       // initial state covariance matrix P - part II
       // if we have radar as the first measurement: vx and vy are already well known
       ekf_.P_ = MatrixXd::Identity(4, 4);
-      ekf_.P_(2,2) = 1e3;
-      ekf_.P_(3,3) = 1e3;
+      ekf_.P_(2,2) = 1000.f;
+      ekf_.P_(3,3) = 1000.f;
     }
 
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
@@ -84,8 +84,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       // initial state covariance matrix P - part II
       // if we have laser as the first measurement: vx and vy are pretty unsure
       ekf_.P_ = MatrixXd::Identity(4, 4);
-      ekf_.P_(2,2) = 1e3;
-      ekf_.P_(3,3) = 1e3;
+      ekf_.P_(2,2) = 1000.f;
+      ekf_.P_(3,3) = 1000.f;
     }
 
     previous_timestamp_ = measurement_pack.timestamp_;
@@ -100,7 +100,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    ****************************************************************************/
 
   // Time keeping: Time from ms to s -> division by 1e6
-  float dt = (measurement_pack.timestamp_ - previous_timestamp_)/1e6;
+  float dt = (measurement_pack.timestamp_ - previous_timestamp_)/1000000.0;
   previous_timestamp_ = measurement_pack.timestamp_;
   
   // Update the state transition matrix F according to the new elapsed time 
@@ -114,8 +114,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
 	// set the process covariance matrix Q
   // using noise_ax = 9 and noise_ay = 9 for your Q matrix.
-	float noise_ax = 9;
-	float noise_ay = 9;
+	float noise_ax = 9.f;
+	float noise_ay = 9.f;
 
 	ekf_.Q_ = MatrixXd(4, 4);
 	ekf_.Q_ <<  dt_4/4*noise_ax, 0, dt_3/2*noise_ax, 0,
