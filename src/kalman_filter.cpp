@@ -50,22 +50,23 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float vx = x_(2);
   float vy = x_(3);
 
-  // convert state x' to polar coordinates in order to compare it to new measurement z
-  VectorXd z_pred(3);
+  float epsilon = 1e-5;
 
+  // convert state x' to polar coordinates in order to compare it to new measurement z
   float rho = sqrt(px*px+py*py);
   float phi = 0;
   // check for division by 0
-  if (px > 1e-5) {
+  if (fabs(px) > epsilon) {
     phi = atan2(py,px);
   }
 
   float rho_dot = 0.f;
   // check for division by 0
-  if (fabs(z_pred(0)) > 1e-5) {
+  if (fabs(rho) > epsilon) {
     rho_dot = (px*vx+py*vy)/rho;
   }
   
+  VectorXd z_pred(3);
   z_pred << rho, phi, rho_dot;
 
   VectorXd y = z-z_pred;
@@ -80,9 +81,6 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
       y(1) += 2.f*M_PI;
     }
   }
-
-
-
 
   // following code is identical to normal Update function (only H and R have different values)
   MatrixXd Ht = H_.transpose();
