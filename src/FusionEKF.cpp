@@ -59,16 +59,17 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       // converting radar measurements (polar coordinates) to carthesian coordinates
-      float ro = measurement_pack.raw_measurements_(0);
+      float rho = measurement_pack.raw_measurements_(0);
       float phi = measurement_pack.raw_measurements_(1);
-      float ro_dot = measurement_pack.raw_measurements_(2);
-      ekf_.x_(0) = ro * cos(phi);
-      ekf_.x_(1) = ro * sin(phi);      
-      /*ekf_.x_(2) = ro_dot * cos(phi);
-      ekf_.x_(3) = ro_dot * sin(phi);*/
+      float rho_dot = measurement_pack.raw_measurements_(2);
+      ekf_.x_(0) = rho * cos(phi);
+      ekf_.x_(1) = rho * sin(phi);      
+      ekf_.x_(2) = rho_dot * cos(phi);
+      ekf_.x_(3) = rho_dot * sin(phi);
 
       // initial state covariance matrix P - part II
       // if we have radar as the first measurement: vx and vy are already well known
+      ekf_.P_ = MatrixXd::Identity(4, 4);
       ekf_.P_(2,2) = 1e3;
       ekf_.P_(3,3) = 1e3;
     }
@@ -77,9 +78,12 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       
       ekf_.x_(0) = measurement_pack.raw_measurements_(0);
       ekf_.x_(1) = measurement_pack.raw_measurements_(1);
+      ekf_.x_(2) = 0.f;
+      ekf_.x_(3) = 0.f;
 
       // initial state covariance matrix P - part II
       // if we have laser as the first measurement: vx and vy are pretty unsure
+      ekf_.P_ = MatrixXd::Identity(4, 4);
       ekf_.P_(2,2) = 1e3;
       ekf_.P_(3,3) = 1e3;
     }
