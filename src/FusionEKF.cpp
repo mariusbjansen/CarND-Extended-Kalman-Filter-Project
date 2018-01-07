@@ -29,18 +29,18 @@ FusionEKF::FusionEKF() {
 
   // H matrix laser - current state into the measurement space of the sensor
   H_laser_ << 1, 0, 0, 0,
-			        0, 1, 0, 0;
+              0, 1, 0, 0;
 
   // Hj_ is not initialized since it is calculated explicitly before first time usage  
 
   // initial transition matrix F_ (assuming a dt of 1s) (also actually not necessary)
-  ekf_.F_ = MatrixXd::Identity(2, 2);
+  ekf_.F_ = MatrixXd::Identity(4, 4);
   float dt = 1;
   ekf_.F_(0,2) = dt;
   ekf_.F_(1,3) = dt;
 
   // initial state covariance matrix P - part I
-  ekf_.P_ = MatrixXd::Identity(2, 2);
+  ekf_.P_ = MatrixXd::Identity(4, 4);
 }
 
 FusionEKF::~FusionEKF() {}
