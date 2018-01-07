@@ -28,10 +28,6 @@ void KalmanFilter::Predict() {
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
-  /**
-  TODO:
-    * update the state by using Kalman Filter equations
-  */
 
   VectorXd y = z - H_ * x_;
   MatrixXd Ht = H_.transpose();
@@ -39,32 +35,45 @@ void KalmanFilter::Update(const VectorXd &z) {
   MatrixXd Si = S.inverse();
   MatrixXd K = P_ * Ht * Si;
 
-  // new state
+  // new state estimate
   x_ = x_ + (K * y);
-  MatrixXd I = MatrixXd::Identity(2, 2);
+  long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(x_size, x_size);
   P_ = (I - K * H_) * P_;
   
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-  /**
-  TODO:
-    * update the state by using Extended Kalman Filter equations
-  */
 
-  // convert state x' to polar = radar COordinate System (cos)
-  VectorXd x_radar_cos = VectorXd(3);
+  // convert state x' to polar coordinates in order to compare it to new measurement z
+  VectorXd z_pred = VectorXd(3);
 
-  x_radar_cos(0) = sqrt(x_(0)*x_(0)+x_(1)*x_(1));
-  x_radar_cos(1) = atan2(x_(1),x_(0));
-  x_radar_cos(2) = (x_(0)*x_(2)+x_(1)*x_(3))/sqrt(x_radar_cos(0));
-
-  VectorXd y = z-x_radar_cos;
+  // rho
+  z_pred(0) = sqrt(x_(0)*x_(0)+x_(1)*x_(1));
+  // phi
+  z_pred(1) = atan2(x_(1),x_(0));
   
-  /**
-  TODO:
-    * continue here with S, K and P next time
-    * update the state by using Extended Kalman Filter equations
-  */
+  // rho dot
+  // check for division by 0
+  if (fabs(z_pred(0)) < 1e-5) {
+    z_pred(2) = 0;  
+  }
+  else {
+    z_pred(2) = (x_(0)*x_(2)+x_(1)*x_(3))/sqrt(z_pred(0));
+  }
+  
+  VectorXd y = z-z_pred;
+
+  // following code is identical to normal Update function (only H and R have different values)
+  MatrixXd Ht = H_.transpose();
+  MatrixXd S = H_ * P_ * Ht + R_;
+  MatrixXd Si = S.inverse();
+  MatrixXd K = P_ * Ht * Si;
+
+  // new state estimate
+  x_ = x_ + (K * y);
+  long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(x_size, x_size);
+  P_ = (I - K * H_) * P_;
 
 }
