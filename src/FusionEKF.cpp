@@ -39,8 +39,10 @@ FusionEKF::FusionEKF() {
   ekf_.F_(0,2) = dt;
   ekf_.F_(1,3) = dt;
 
-  // initial state covariance matrix P - part I
+  // initial state covariance matrix P
   ekf_.P_ = MatrixXd::Identity(4, 4);
+  ekf_.P_(2,2) = 1000;
+  ekf_.P_(3,3) = 1000;
 }
 
 FusionEKF::~FusionEKF() {}
@@ -66,12 +68,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       ekf_.x_(1) = rho * sin(phi);      
       ekf_.x_(2) = rho_dot * cos(phi);
       ekf_.x_(3) = rho_dot * sin(phi);
-
-      // initial state covariance matrix P - part II
-      // if we have radar as the first measurement: vx and vy are already well known
-      ekf_.P_ = MatrixXd::Identity(4, 4);
-      ekf_.P_(2,2) = 1000.f;
-      ekf_.P_(3,3) = 1000.f;
     }
 
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
@@ -80,12 +76,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       ekf_.x_(1) = measurement_pack.raw_measurements_(1);
       ekf_.x_(2) = 0.f;
       ekf_.x_(3) = 0.f;
-
-      // initial state covariance matrix P - part II
-      // if we have laser as the first measurement: vx and vy are pretty unsure
-      ekf_.P_ = MatrixXd::Identity(4, 4);
-      ekf_.P_(2,2) = 1000.f;
-      ekf_.P_(3,3) = 1000.f;
     }
 
     previous_timestamp_ = measurement_pack.timestamp_;
@@ -118,10 +108,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 	float noise_ay = 9.f;
 
 	ekf_.Q_ = MatrixXd(4, 4);
-	ekf_.Q_ <<  dt_4/4*noise_ax, 0, dt_3/2*noise_ax, 0,
-			   0, dt_4/4*noise_ay, 0, dt_3/2*noise_ay,
-			   dt_3/2*noise_ax, 0, dt_2*noise_ax, 0,
-			   0, dt_3/2*noise_ay, 0, dt_2*noise_ay;
+  ekf_.Q_ << dt_4 / 4 * noise_ax, 0                  , dt_3 / 2 * noise_ax, 0                  ,
+             0                  , dt_4 / 4 * noise_ay, 0                  , dt_3 / 2 * noise_ay,
+             dt_3 / 2 * noise_ax, 0                  , dt_2*noise_ax      , 0                  ,
+             0                  , dt_3 / 2 * noise_ay, 0                  , dt_2*noise_ay;
 
 
   ekf_.Predict();

@@ -22,7 +22,7 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
 
 void KalmanFilter::Predict() {
 
-  x_ = F_*x_;
+  x_ = F_ * x_;
   MatrixXd Ft = F_.transpose();
   P_ = F_ * P_ * Ft + Q_;
 }
@@ -51,10 +51,15 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float vy = x_(3);
 
   // convert state x' to polar coordinates in order to compare it to new measurement z
-  VectorXd z_pred = VectorXd(3);
+  VectorXd z_pred(3);
 
   float rho = sqrt(px*px+py*py);
-  float phi = atan2(py,px);
+  float phi = 0;
+  // check for division by 0
+  if (px > 1e-5) {
+    phi = atan2(py,px);
+  }
+
   float rho_dot = 0.f;
   // check for division by 0
   if (fabs(z_pred(0)) > 1e-5) {
@@ -65,11 +70,26 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 
   VectorXd y = z-z_pred;
 
+  // adjusting resulting angle phi in the y vector between -pi and pi.
+  while (y(1) > M_PI || y(1) < -M_PI) {
+    
+    if (y(1) > M_PI ) {
+      y(1) -= 2.f*M_PI;
+    } 
+    else {
+      y(1) += 2.f*M_PI;
+    }
+  }
+
+
+
+
   // following code is identical to normal Update function (only H and R have different values)
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd Si = S.inverse();
-  MatrixXd K = P_ * Ht * Si;
+  MatrixXd PHt = P_ * Ht;
+  MatrixXd K = PHt * Si;
 
   // new state estimate
   x_ = x_ + (K * y);
