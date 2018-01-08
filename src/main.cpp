@@ -26,8 +26,28 @@ std::string hasData(std::string s) {
   return "";
 }
 
-int main()
-{
+int main(int argc, char *argv[]) {
+  
+  // depending on command line argument: process radar or laser or both
+  bool laser_process = false;
+  bool radar_process = false;
+  if (argc == 2 && (!strcmp(argv[1], "r") || !strcmp(argv[1], "R"))) {
+    cout<<"Processing radar only.\n";
+    laser_process = false;
+    radar_process = true;
+  }
+  else if (argc == 2 && (!strcmp(argv[1], "l") || !strcmp(argv[1], "L"))) {
+    cout<<"Processing laser only\n";
+    laser_process = true;
+    radar_process = false;
+  }
+  else {
+      cout<<"Processing radar and laser.\n";
+      laser_process = true;
+      radar_process = true;
+  }
+  
+
   uWS::Hub h;
 
   // Create a Kalman Filter instance
@@ -38,7 +58,7 @@ int main()
   vector<VectorXd> estimations;
   vector<VectorXd> ground_truth;
 
-  h.onMessage([&fusionEKF,&tools,&estimations,&ground_truth](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  h.onMessage([&fusionEKF,&tools,&estimations,&ground_truth, radar_process, laser_process](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -66,7 +86,7 @@ int main()
     	  string sensor_type;
     	  iss >> sensor_type;
 
-    	  if (sensor_type.compare("L") == 0) {
+    	  if ((sensor_type.compare("L") == 0) && (laser_process == true)) {
       	  		meas_package.sensor_type_ = MeasurementPackage::LASER;
           		meas_package.raw_measurements_ = VectorXd(2);
           		float px;
@@ -76,7 +96,7 @@ int main()
           		meas_package.raw_measurements_ << px, py;
           		iss >> timestamp;
           		meas_package.timestamp_ = timestamp;
-          } else if (sensor_type.compare("R") == 0) {
+          } else if ((sensor_type.compare("R") == 0) && (radar_process == true)) {
 
       	  		meas_package.sensor_type_ = MeasurementPackage::RADAR;
           		meas_package.raw_measurements_ = VectorXd(3);
@@ -90,6 +110,15 @@ int main()
           		iss >> timestamp;
           		meas_package.timestamp_ = timestamp;
           }
+
+
+        if (((sensor_type.compare("R") == 0) && (radar_process == false)) ||
+            ((sensor_type.compare("L") == 0) && (laser_process == false)) )
+        {
+          std::string msg = "42[\"manual\",{}]";
+          ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+        }  
+        else {
           float x_gt;
     	  float y_gt;
     	  float vx_gt;
@@ -136,7 +165,7 @@ int main()
           auto msg = "42[\"estimate_marker\"," + msgJson.dump() + "]";
           // std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
-	  
+        }
         }
       } else {
         
