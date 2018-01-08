@@ -3,7 +3,7 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-// Please note that the Eigen library does not initialize 
+// Please note that the Eigen library does not initialize
 // VectorXd or MatrixXd objects with zeros upon creation.
 
 KalmanFilter::KalmanFilter() {}
@@ -21,14 +21,12 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
 }
 
 void KalmanFilter::Predict() {
-
   x_ = F_ * x_;
   MatrixXd Ft = F_.transpose();
   P_ = F_ * P_ * Ft + Q_;
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
-
   VectorXd y = z - H_ * x_;
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
@@ -40,11 +38,9 @@ void KalmanFilter::Update(const VectorXd &z) {
   long x_size = x_.size();
   MatrixXd I = MatrixXd::Identity(x_size, x_size);
   P_ = (I - K * H_) * P_;
-  
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-
   float px = x_(0);
   float py = x_(1);
   float vx = x_(2);
@@ -52,37 +48,37 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 
   float epsilon = 1e-5;
 
-  // convert state x' to polar coordinates in order to compare it to new measurement z
-  float rho = sqrt(px*px+py*py);
+  // convert state x' to polar coordinates in order to compare it to new
+  // measurement z
+  float rho = sqrt(px * px + py * py);
   float phi = 0;
   // check for division by 0
   if (fabs(px) > epsilon) {
-    phi = atan2(py,px);
+    phi = atan2(py, px);
   }
 
   float rho_dot = 0.f;
   // check for division by 0
   if (fabs(rho) > epsilon) {
-    rho_dot = (px*vx+py*vy)/rho;
+    rho_dot = (px * vx + py * vy) / rho;
   }
-  
+
   VectorXd z_pred(3);
   z_pred << rho, phi, rho_dot;
 
-  VectorXd y = z-z_pred;
+  VectorXd y = z - z_pred;
 
   // adjusting resulting angle phi in the y vector between -pi and pi.
   while (y(1) > M_PI || y(1) < -M_PI) {
-    
-    if (y(1) > M_PI ) {
-      y(1) -= 2.f*M_PI;
-    } 
-    else {
-      y(1) += 2.f*M_PI;
+    if (y(1) > M_PI) {
+      y(1) -= 2.f * M_PI;
+    } else {
+      y(1) += 2.f * M_PI;
     }
   }
 
-  // following code is identical to normal Update function (only H and R have different values)
+  // following code is identical to normal Update function (only H and R have
+  // different values)
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd Si = S.inverse();
@@ -94,5 +90,4 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   long x_size = x_.size();
   MatrixXd I = MatrixXd::Identity(x_size, x_size);
   P_ = (I - K * H_) * P_;
-
 }
