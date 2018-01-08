@@ -1,3 +1,26 @@
+# Extended Kalman Filter Project 
+Self-Driving Car Engineer Nanodegree Program
+
+The documentation of the Kalman filter is presented in the course or Sebastian's book Probabilistic Roboticts.
+
+## In addition to the regular requirements for this project
+* I made it possible to call the ExtendedKF either with argument r or R or l or L to only simulate radar or laser from the command line
+* I applied clang-format with the google style on all *.c* and *.h* files
+
+When I simulate radar only and laser only it can be seen that the laser RMSE is a bit lower (beside vx which the radar can sense better)
+
+Also it's worth mentioning that the fused result is better than the single sensors.
+
+
+
+-
+-
+-
+-
+original README.md follows ...
+
+
+
 # Extended Kalman Filter Project Starter Code
 Self-Driving Car Engineer Nanodegree Program
 
